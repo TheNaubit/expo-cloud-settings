@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.1.0...v1.1.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* enable trusted publishing and suppress test deprecation warnings ([3de3bef](https://github.com/TheNaubit/expo-cloud-settings/commit/3de3bef967878bbec1bfa4d716cf5f548531efea))
+* suppress react-test-renderer deprecation warnings in tests ([b4876e3](https://github.com/TheNaubit/expo-cloud-settings/commit/b4876e367edc7a6c893b6a1dddb806028dc00096))
+
 # [1.1.0](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.0.0...v1.1.0) (2026-02-06)
 
 
