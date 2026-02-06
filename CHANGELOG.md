@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.2.0...v1.3.0) (2026-02-06)
+
+
+### Features
+
+* add context7 configuration file with URL and public key ([a553b6f](https://github.com/TheNaubit/expo-cloud-settings/commit/a553b6f93f98378d57ad36f1397f0317f57ebcef))
+
 # [1.2.0](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.1.1...v1.2.0) (2026-02-06)
 
 
