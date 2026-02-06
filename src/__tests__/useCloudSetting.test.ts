@@ -65,6 +65,19 @@ function renderHook<T>(useHook: () => T) {
   };
 }
 
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('react-test-renderer is deprecated')) {
+      return;
+    }
+    originalConsoleError(...args);
+  };
+});
+afterAll(() => {
+  console.error = originalConsoleError;
+});
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockListeners.length = 0;
