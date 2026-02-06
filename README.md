@@ -18,14 +18,14 @@ Android returns no-op (null values, `isAvailable() === false`) so you can use th
 ## Installation
 
 ```bash
-npx expo install expo-cloud-settings
+npx expo install @nauverse/expo-cloud-settings
 ```
 
 Add the config plugin to your `app.config.ts` (or `app.json`):
 
 ```ts
 export default {
-  plugins: ['expo-cloud-settings'],
+  plugins: ['@nauverse/expo-cloud-settings'],
 };
 ```
 
@@ -38,7 +38,7 @@ By default the KVS identifier is `$(TeamIdentifierPrefix)$(CFBundleIdentifier)` 
 ```ts
 export default {
   plugins: [
-    ['expo-cloud-settings', { containerIdentifier: '$(TeamIdentifierPrefix)com.example.shared' }],
+    ['@nauverse/expo-cloud-settings', { containerIdentifier: '$(TeamIdentifierPrefix)com.example.shared' }],
   ],
 };
 ```
@@ -48,7 +48,7 @@ export default {
 Wrap your app with `CloudSettingsProvider`. This sets up a single shared event listener and in-memory cache for all hooks:
 
 ```tsx
-import { CloudSettingsProvider } from 'expo-cloud-settings';
+import { CloudSettingsProvider } from '@nauverse/expo-cloud-settings';
 
 export default function App() {
   return (
@@ -66,7 +66,7 @@ All `useCloudSetting*` hooks must be descendants of this provider.
 ### Hooks (recommended)
 
 ```tsx
-import { useCloudSetting, useCloudSettingBool, isAvailable } from 'expo-cloud-settings';
+import { useCloudSetting, useCloudSettingBool, isAvailable } from '@nauverse/expo-cloud-settings';
 
 function Settings() {
   const [username, setUsername] = useCloudSetting('username', 'Guest');
@@ -126,7 +126,7 @@ import {
   getString, setString, remove, getAllKeys, clear, isAvailable,
   getBool, setBool, getNumber, setNumber, getObject, setObject,
   addChangeListener,
-} from 'expo-cloud-settings';
+} from '@nauverse/expo-cloud-settings';
 
 // String
 setString('token', 'abc123');
@@ -160,7 +160,7 @@ if (isAvailable()) {
 Listen for changes pushed from other devices:
 
 ```ts
-import { addChangeListener } from 'expo-cloud-settings';
+import { addChangeListener } from '@nauverse/expo-cloud-settings';
 
 const subscription = addChangeListener((event) => {
   console.log('Changed keys:', event.changedKeys);
@@ -214,8 +214,10 @@ iCloud KVS data is stored in the user's iCloud account and is **not encrypted at
 | Platform | Status |
 |----------|--------|
 | iOS | Full support via `NSUbiquitousKeyValueStore` |
-| Android | No-op - all getters return `null`, `isAvailable()` returns `false` |
+| Android | No-op (returns `null`, `isAvailable()` returns `false`) - **real sync support coming soon** via Google Drive App Data |
 | Web | Not supported |
+
+> **Android support coming soon.** The Android module currently acts as a safe no-op so your code works on both platforms without crashes. Real cross-device sync on Android (via Google Drive App Data) is on the roadmap. Follow the repo for updates.
 
 ## API reference
 
