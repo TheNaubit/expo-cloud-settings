@@ -34,7 +34,13 @@ export default {
 };
 ```
 
-This automatically adds the `com.apple.developer.ubiquity-kvstore-identifier` entitlement to your iOS build.
+This automatically adds the following entitlements to your iOS build:
+
+- `com.apple.developer.ubiquity-kvstore-identifier` - iCloud Key-Value Storage identifier
+- `com.apple.developer.icloud-container-identifiers` - enables the iCloud capability
+- `com.apple.developer.icloud-services` - declares CloudKit service usage
+
+These entitlements ensure that EAS Build (and Xcode) correctly enable the iCloud capability on your App ID and provisioning profile.
 
 ### Custom container identifier
 
