@@ -10,7 +10,11 @@ class CloudSettingsStore {
 
   read(key: string): string | null {
     if (!this.cache.has(key)) {
-      this.cache.set(key, getString(key));
+      try {
+        this.cache.set(key, getString(key));
+      } catch {
+        this.cache.set(key, null);
+      }
     }
     return this.cache.get(key) ?? null;
   }
@@ -24,7 +28,12 @@ class CloudSettingsStore {
     let changed = false;
     for (const key of keys) {
       if (this.cache.has(key)) {
-        const fresh = getString(key);
+        let fresh: string | null;
+        try {
+          fresh = getString(key);
+        } catch {
+          fresh = null;
+        }
         if (this.cache.get(key) !== fresh) {
           this.cache.set(key, fresh);
           changed = true;
@@ -95,12 +104,12 @@ export function useCloudSettingRaw(key: string): readonly [string | null, (value
 
   const setter = useCallback(
     (newValue: string | null) => {
-      store.write(key, newValue);
       if (newValue === null) {
         remove(key);
       } else {
         setString(key, newValue);
       }
+      store.write(key, newValue);
     },
     [store, key]
   );

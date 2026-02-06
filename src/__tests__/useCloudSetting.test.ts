@@ -224,6 +224,56 @@ describe('useCloudSettingBool', () => {
   });
 });
 
+describe('useCloudSettingBool setter with null', () => {
+  test('setting null removes key', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue('true');
+    const { result } = renderHook(() => useCloudSettingBool('dark'));
+
+    TestRenderer.act(() => {
+      result.current[1](null);
+    });
+
+    expect(result.current[0]).toBeNull();
+    expect(mockModule.remove).toHaveBeenCalledWith('dark');
+  });
+});
+
+describe('useCloudSettingNumber setter validation', () => {
+  test('setter throws on NaN', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue(null);
+    const { result } = renderHook(() => useCloudSettingNumber('n'));
+    expect(() => {
+      TestRenderer.act(() => {
+        result.current[1](NaN);
+      });
+    }).toThrow('value must be a finite number');
+  });
+
+  test('setter throws on Infinity', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue(null);
+    const { result } = renderHook(() => useCloudSettingNumber('n'));
+    expect(() => {
+      TestRenderer.act(() => {
+        result.current[1](Infinity);
+      });
+    }).toThrow('value must be a finite number');
+  });
+});
+
+describe('useCloudSettingNumber setter with null', () => {
+  test('setting null removes key', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue('42');
+    const { result } = renderHook(() => useCloudSettingNumber('count'));
+
+    TestRenderer.act(() => {
+      result.current[1](null);
+    });
+
+    expect(result.current[0]).toBeNull();
+    expect(mockModule.remove).toHaveBeenCalledWith('count');
+  });
+});
+
 describe('useCloudSettingNumber', () => {
   test('reads number from native', () => {
     (mockModule.getString as jest.Mock).mockReturnValue('42');
@@ -241,6 +291,12 @@ describe('useCloudSettingNumber', () => {
 
     expect(result.current[0]).toBe(99);
     expect(mockModule.setString).toHaveBeenCalledWith('count', '99');
+  });
+
+  test('returns default value when native returns null', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue(null);
+    const { result } = renderHook(() => useCloudSettingNumber('count', 0));
+    expect(result.current[0]).toBe(0);
   });
 });
 
@@ -280,5 +336,61 @@ describe('useCloudSettingObject', () => {
     });
 
     expect(result.current[0]).toEqual(data);
+  });
+
+  test('returns default value when native returns null', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue(null);
+    const { result } = renderHook(() =>
+      useCloudSettingObject<{ theme: string }>('prefs', { theme: 'light' })
+    );
+    expect(result.current[0]).toEqual({ theme: 'light' });
+  });
+
+  test('returns default value for invalid JSON', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue('not-json{');
+    const { result } = renderHook(() =>
+      useCloudSettingObject<{ theme: string }>('prefs', { theme: 'light' })
+    );
+    expect(result.current[0]).toEqual({ theme: 'light' });
+  });
+});
+
+describe('useCloudSettingObject setter with null', () => {
+  test('setting null removes key', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue('{"a":1}');
+    const { result } = renderHook(() => useCloudSettingObject('obj'));
+
+    TestRenderer.act(() => {
+      result.current[1](null);
+    });
+
+    expect(result.current[0]).toBeNull();
+    expect(mockModule.remove).toHaveBeenCalledWith('obj');
+  });
+});
+
+describe('useCloudSettingObject setter validation', () => {
+  test('setter throws on circular reference', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue(null);
+    const { result } = renderHook(() => useCloudSettingObject('obj'));
+    const circular: any = { a: 1 };
+    circular.self = circular;
+    expect(() => {
+      TestRenderer.act(() => {
+        result.current[1](circular);
+      });
+    }).toThrow('not JSON-serializable');
+  });
+});
+
+describe('store cache', () => {
+  test('reads native only once per key', () => {
+    (mockModule.getString as jest.Mock).mockReturnValue('val');
+    renderHook(() => useCloudSetting('cached'));
+    // getString called once for initial read (via store.read in getSnapshot)
+    const callCount = (mockModule.getString as jest.Mock).mock.calls.filter(
+      (c: string[]) => c[0] === 'cached'
+    ).length;
+    expect(callCount).toBe(1);
   });
 });

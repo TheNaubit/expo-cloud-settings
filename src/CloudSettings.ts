@@ -6,9 +6,22 @@ import ExpoCloudSettingsModule from './ExpoCloudSettingsModule';
 // iCloud KVS limits
 const MAX_VALUE_BYTES = 1_000_000;
 
+const MAX_KEY_BYTES = 64;
+
 function validateKey(key: string): void {
-  if (!key || key.length === 0) {
+  if (!key) {
     throw new Error('CloudSettings: key must be a non-empty string');
+  }
+  if (typeof TextEncoder !== 'undefined') {
+    if (new TextEncoder().encode(key).length > MAX_KEY_BYTES) {
+      throw new Error(
+        `CloudSettings: key must not exceed ${MAX_KEY_BYTES} bytes`
+      );
+    }
+  } else if (key.length * 4 > MAX_KEY_BYTES) {
+    throw new Error(
+      `CloudSettings: key must not exceed ${MAX_KEY_BYTES} bytes`
+    );
   }
 }
 
@@ -17,12 +30,15 @@ function validateKey(key: string): void {
 export function setString(key: string, value: string): void {
   validateKey(key);
   if (typeof TextEncoder !== 'undefined') {
-    const byteLength = new TextEncoder().encode(value).length;
-    if (byteLength > MAX_VALUE_BYTES) {
+    if (new TextEncoder().encode(value).length > MAX_VALUE_BYTES) {
       throw new Error(
         `CloudSettings: value exceeds maximum size of ${MAX_VALUE_BYTES} bytes`
       );
     }
+  } else if (value.length * 4 > MAX_VALUE_BYTES) {
+    throw new Error(
+      `CloudSettings: value may exceed maximum size of ${MAX_VALUE_BYTES} bytes`
+    );
   }
   ExpoCloudSettingsModule.setString(key, value);
 }
@@ -86,6 +102,9 @@ export function setObject<T>(key: string, value: T): void {
     throw new Error(
       `CloudSettings: value is not JSON-serializable: ${error instanceof Error ? error.message : String(error)}`
     );
+  }
+  if (typeof serialized !== 'string') {
+    throw new Error('CloudSettings: value is not JSON-serializable');
   }
   setString(key, serialized);
 }

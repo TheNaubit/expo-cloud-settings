@@ -59,4 +59,10 @@ describe('config plugin', () => {
       withCloudSettings(baseConfig, { containerIdentifier: 123 as any })
     ).toThrow('containerIdentifier must be a non-empty string');
   });
+
+  test('throws on whitespace-only containerIdentifier', () => {
+    expect(() =>
+      withCloudSettings(baseConfig, { containerIdentifier: '   ' })
+    ).toThrow('containerIdentifier must be a non-empty string');
+  });
 });

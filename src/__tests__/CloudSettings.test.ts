@@ -193,9 +193,39 @@ describe('input validation', () => {
     expect(() => setObject('o', obj)).toThrow('not JSON-serializable');
   });
 
+  test('setObject throws on undefined value', () => {
+    expect(() => setObject('o', undefined)).toThrow('not JSON-serializable');
+  });
+
+  test('setObject throws on function value', () => {
+    expect(() => setObject('o', () => {})).toThrow('not JSON-serializable');
+  });
+
   test('getNumber returns null for empty string', () => {
     (mockModule.getString as jest.Mock).mockReturnValue('');
     expect(getNumber('n')).toBeNull();
+  });
+
+  test('setString throws when value exceeds max bytes', () => {
+    const largeValue = 'x'.repeat(1_000_001);
+    expect(() => setString('k', largeValue)).toThrow('exceeds maximum size');
+  });
+
+  test('setString allows value at max bytes', () => {
+    const maxValue = 'x'.repeat(1_000_000);
+    setString('k', maxValue);
+    expect(mockModule.setString).toHaveBeenCalled();
+  });
+
+  test('validateKey throws on key exceeding 64 bytes', () => {
+    const longKey = 'a'.repeat(65);
+    expect(() => setString(longKey, 'v')).toThrow('key must not exceed 64 bytes');
+  });
+
+  test('validateKey allows key at 64 bytes', () => {
+    const maxKey = 'a'.repeat(64);
+    setString(maxKey, 'v');
+    expect(mockModule.setString).toHaveBeenCalledWith(maxKey, 'v');
   });
 });
 

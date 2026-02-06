@@ -53,6 +53,9 @@ export function useCloudSettingNumber(
 
   const setter = useCallback(
     (newValue: number | null) => {
+      if (newValue !== null && !Number.isFinite(newValue)) {
+        throw new Error('CloudSettings: value must be a finite number');
+      }
       setRaw(newValue === null ? null : JSON.stringify(newValue));
     },
     [setRaw]
@@ -80,7 +83,22 @@ export function useCloudSettingObject<T>(
 
   const setter = useCallback(
     (newValue: T | null) => {
-      setRaw(newValue === null ? null : JSON.stringify(newValue));
+      if (newValue === null) {
+        setRaw(null);
+        return;
+      }
+      let serialized: string;
+      try {
+        serialized = JSON.stringify(newValue);
+      } catch (error) {
+        throw new Error(
+          `CloudSettings: value is not JSON-serializable: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      if (typeof serialized !== 'string') {
+        throw new Error('CloudSettings: value is not JSON-serializable');
+      }
+      setRaw(serialized);
     },
     [setRaw]
   );
