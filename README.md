@@ -234,6 +234,10 @@ type CloudSettingsChangeEvent = {
 };
 ```
 
+## Acknowledgements
+
+Big thanks to https://github.com/okwasniewski/expo-icloud-storage  I was initially using that repository in my projects and it was really great. This repository started because I needed specific changes (like the hooks and Android support) and creating a merge request there would change the project a lot, but if not, I would have just done that. Again, thanks for the inspiration!
+
 ## License
 
 MIT
