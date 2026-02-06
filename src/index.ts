@@ -1,5 +1,29 @@
-// Reexport the native module. On web, it will be resolved to ExpoCloudSettingsModule.web.ts
-// and on native platforms to ExpoCloudSettingsModule.ts
-export { default } from './ExpoCloudSettingsModule';
-export { default as ExpoCloudSettingsView } from './ExpoCloudSettingsView';
-export * from  './ExpoCloudSettings.types';
+export {
+  setString,
+  getString,
+  remove,
+  getAllKeys,
+  clear,
+  isAvailable,
+  setBool,
+  getBool,
+  setNumber,
+  getNumber,
+  setObject,
+  getObject,
+  addChangeListener,
+} from './CloudSettings';
+
+export { CloudSettingsProvider } from './CloudSettingsProvider';
+
+export {
+  useCloudSetting,
+  useCloudSettingObject,
+  useCloudSettingBool,
+  useCloudSettingNumber,
+} from './useCloudSetting';
+
+export type {
+  CloudSettingsChangeReason,
+  CloudSettingsChangeEvent,
+} from './CloudSettings.types';

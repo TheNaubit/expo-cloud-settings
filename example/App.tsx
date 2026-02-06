@@ -1,73 +1,125 @@
-import { useEvent } from 'expo';
-import ExpoCloudSettings, { ExpoCloudSettingsView } from 'expo-cloud-settings';
-import { Button, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import {
+  CloudSettingsProvider,
+  isAvailable,
+  useCloudSetting,
+  useCloudSettingBool,
+  addChangeListener,
+  CloudSettingsChangeEvent,
+} from 'expo-cloud-settings';
+import { useEffect, useState } from 'react';
+import { Button, SafeAreaView, ScrollView, Text, View, StyleSheet } from 'react-native';
 
-export default function App() {
-  const onChangePayload = useEvent(ExpoCloudSettings, 'onChange');
+function Settings() {
+  const available = isAvailable();
+  const [username, setUsername] = useCloudSetting('username', 'Guest');
+  const [darkMode, setDarkMode] = useCloudSettingBool('darkMode', false);
+  const [lastEvent, setLastEvent] = useState<CloudSettingsChangeEvent | null>(null);
+
+  useEffect(() => {
+    const subscription = addChangeListener((event) => {
+      setLastEvent(event);
+    });
+    return () => subscription.remove();
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, darkMode && styles.dark]}>
       <ScrollView style={styles.container}>
-        <Text style={styles.header}>Module API Example</Text>
-        <Group name="Constants">
-          <Text>{ExpoCloudSettings.PI}</Text>
+        <Text style={[styles.header, darkMode && styles.lightText]}>
+          Cloud Settings Demo
+        </Text>
+
+        <Group name="Platform" darkMode={darkMode}>
+          <Text style={darkMode && styles.lightText}>
+            iCloud available: {String(available)}
+          </Text>
         </Group>
-        <Group name="Functions">
-          <Text>{ExpoCloudSettings.hello()}</Text>
+
+        <Group name="String Setting" darkMode={darkMode}>
+          <Text style={darkMode && styles.lightText}>Username: {username}</Text>
+          <Button title="Set to Alice" onPress={() => setUsername('Alice')} />
+          <Button title="Set to Bob" onPress={() => setUsername('Bob')} />
+          <Button title="Clear" onPress={() => setUsername(null)} />
         </Group>
-        <Group name="Async functions">
+
+        <Group name="Bool Setting" darkMode={darkMode}>
+          <Text style={darkMode && styles.lightText}>
+            Dark mode: {String(darkMode)}
+          </Text>
           <Button
-            title="Set value"
-            onPress={async () => {
-              await ExpoCloudSettings.setValueAsync('Hello from JS!');
-            }}
+            title="Toggle Dark Mode"
+            onPress={() => setDarkMode(!darkMode)}
           />
         </Group>
-        <Group name="Events">
-          <Text>{onChangePayload?.value}</Text>
-        </Group>
-        <Group name="Views">
-          <ExpoCloudSettingsView
-            url="https://www.example.com"
-            onLoad={({ nativeEvent: { url } }) => console.log(`Loaded: ${url}`)}
-            style={styles.view}
-          />
+
+        <Group name="Change Events" darkMode={darkMode}>
+          {lastEvent ? (
+            <>
+              <Text style={darkMode && styles.lightText}>
+                Reason: {lastEvent.reason}
+              </Text>
+              <Text style={darkMode && styles.lightText}>
+                Changed keys: {lastEvent.changedKeys.join(', ')}
+              </Text>
+            </>
+          ) : (
+            <Text style={darkMode && styles.lightText}>
+              No sync events yet. Change a value on another device.
+            </Text>
+          )}
         </Group>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Group(props: { name: string; children: React.ReactNode }) {
+export default function App() {
   return (
-    <View style={styles.group}>
-      <Text style={styles.groupHeader}>{props.name}</Text>
+    <CloudSettingsProvider>
+      <Settings />
+    </CloudSettingsProvider>
+  );
+}
+
+function Group(props: { name: string; darkMode: boolean | null; children: React.ReactNode }) {
+  return (
+    <View style={[styles.group, props.darkMode && styles.groupDark]}>
+      <Text style={[styles.groupHeader, props.darkMode && styles.lightText]}>
+        {props.name}
+      </Text>
       {props.children}
     </View>
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   header: {
     fontSize: 30,
     margin: 20,
+    fontWeight: 'bold',
   },
   groupHeader: {
     fontSize: 20,
-    marginBottom: 20,
+    marginBottom: 12,
+    fontWeight: '600',
   },
   group: {
     margin: 20,
+    marginTop: 0,
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
   },
+  groupDark: {
+    backgroundColor: '#333',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#eee',
   },
-  view: {
-    flex: 1,
-    height: 200,
+  dark: {
+    backgroundColor: '#111',
   },
-};
+  lightText: {
+    color: '#eee',
+  },
+});

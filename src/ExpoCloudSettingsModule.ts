@@ -1,12 +1,14 @@
 import { NativeModule, requireNativeModule } from 'expo';
 
-import { ExpoCloudSettingsModuleEvents } from './ExpoCloudSettings.types';
+import { CloudSettingsModuleEvents } from './CloudSettings.types';
 
-declare class ExpoCloudSettingsModule extends NativeModule<ExpoCloudSettingsModuleEvents> {
-  PI: number;
-  hello(): string;
-  setValueAsync(value: string): Promise<void>;
+declare class ExpoCloudSettingsModule extends NativeModule<CloudSettingsModuleEvents> {
+  setString(key: string, value: string): void;
+  getString(key: string): string | null;
+  remove(key: string): void;
+  getAllKeys(): string[];
+  clear(): void;
+  isAvailable(): boolean;
 }
 
-// This call loads the native module object from the JSI.
 export default requireNativeModule<ExpoCloudSettingsModule>('ExpoCloudSettings');

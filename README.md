@@ -1,0 +1,239 @@
+# expo-cloud-settings
+
+An Expo module wrapping Apple's `NSUbiquitousKeyValueStore` for iCloud key-value sync across devices. Hooks-first React API with change listeners.
+
+Android returns no-op (null values, `isAvailable() === false`) so you can use the same API on both platforms without crashes.
+
+## Features
+
+- React hooks: `useCloudSetting`, `useCloudSettingBool`, `useCloudSettingNumber`, `useCloudSettingObject`
+- Shared context provider - one event listener, one cache, no duplicate native reads
+- Change event listeners for cross-device sync
+- Config plugin - no manual Xcode entitlement setup
+- Typed helpers: `setBool`, `setNumber`, `setObject<T>`
+- `clear()` to remove all keys
+- `isAvailable()` runtime platform check (checks iCloud sign-in status)
+- Android no-op module (safe to call, returns null)
+
+## Installation
+
+```bash
+npx expo install expo-cloud-settings
+```
+
+Add the config plugin to your `app.config.ts` (or `app.json`):
+
+```ts
+export default {
+  plugins: ['expo-cloud-settings'],
+};
+```
+
+This automatically adds the `com.apple.developer.ubiquity-kvstore-identifier` entitlement to your iOS build.
+
+### Custom container identifier
+
+By default the KVS identifier is `$(TeamIdentifierPrefix)$(CFBundleIdentifier)` (Apple's recommended default). To share a KVS container across multiple apps:
+
+```ts
+export default {
+  plugins: [
+    ['expo-cloud-settings', { containerIdentifier: '$(TeamIdentifierPrefix)com.example.shared' }],
+  ],
+};
+```
+
+## Setup
+
+Wrap your app with `CloudSettingsProvider`. This sets up a single shared event listener and in-memory cache for all hooks:
+
+```tsx
+import { CloudSettingsProvider } from 'expo-cloud-settings';
+
+export default function App() {
+  return (
+    <CloudSettingsProvider>
+      <MyApp />
+    </CloudSettingsProvider>
+  );
+}
+```
+
+All `useCloudSetting*` hooks must be descendants of this provider.
+
+## Usage
+
+### Hooks (recommended)
+
+```tsx
+import { useCloudSetting, useCloudSettingBool, isAvailable } from 'expo-cloud-settings';
+
+function Settings() {
+  const [username, setUsername] = useCloudSetting('username', 'Guest');
+  const [darkMode, setDarkMode] = useCloudSettingBool('darkMode', false);
+
+  return (
+    <View>
+      <Text>iCloud available: {String(isAvailable())}</Text>
+      <Text>Hello, {username}</Text>
+      <Button title="Toggle dark mode" onPress={() => setDarkMode(!darkMode)} />
+      <Button title="Clear username" onPress={() => setUsername(null)} />
+    </View>
+  );
+}
+```
+
+Multiple components using the same key share the cached value and stay in sync automatically. When a value changes on another device, all hooks for that key re-render with the new value.
+
+#### `useCloudSetting(key, defaultValue?)`
+
+Returns `readonly [string | null, (value: string | null) => void]`.
+
+Setting to `null` removes the key.
+
+#### `useCloudSettingBool(key, defaultValue?)`
+
+Returns `readonly [boolean | null, (value: boolean | null) => void]`.
+
+#### `useCloudSettingNumber(key, defaultValue?)`
+
+Returns `readonly [number | null, (value: number | null) => void]`.
+
+#### `useCloudSettingObject<T>(key, defaultValue?)`
+
+Returns `readonly [T | null, (value: T | null) => void]`.
+
+Values are JSON-serialized. Returns `null` (or `defaultValue`) if the stored value is not valid JSON.
+
+```tsx
+interface Preferences {
+  theme: string;
+  fontSize: number;
+}
+
+const [prefs, setPrefs] = useCloudSettingObject<Preferences>('prefs', {
+  theme: 'light',
+  fontSize: 16,
+});
+```
+
+### Functional API
+
+For use outside of React components (no provider required):
+
+```ts
+import {
+  getString, setString, remove, getAllKeys, clear, isAvailable,
+  getBool, setBool, getNumber, setNumber, getObject, setObject,
+  addChangeListener,
+} from 'expo-cloud-settings';
+
+// String
+setString('token', 'abc123');
+const token = getString('token'); // 'abc123' | null
+
+// Boolean
+setBool('notifications', true);
+const enabled = getBool('notifications'); // true | null
+
+// Number
+setNumber('launchCount', 5);
+const count = getNumber('launchCount'); // 5 | null
+
+// Object
+setObject('user', { name: 'Alice', age: 30 });
+const user = getObject<{ name: string; age: number }>('user');
+
+// Keys & cleanup
+const keys = getAllKeys(); // string[]
+remove('token');
+clear(); // removes all keys
+
+// Platform check
+if (isAvailable()) {
+  // iCloud KVS is available (iOS with iCloud signed in)
+}
+```
+
+### Change listener
+
+Listen for changes pushed from other devices:
+
+```ts
+import { addChangeListener } from 'expo-cloud-settings';
+
+const subscription = addChangeListener((event) => {
+  console.log('Changed keys:', event.changedKeys);
+  console.log('Reason:', event.reason);
+  // reason: 'serverChange' | 'initialSync' | 'quotaViolation' | 'accountChange'
+});
+
+// Clean up
+subscription.remove();
+```
+
+## Architecture
+
+The `CloudSettingsProvider` creates a single `CloudSettingsStore` that:
+
+1. Maintains an in-memory cache of all read keys
+2. Registers one native event listener for `onStoreChanged`
+3. When a change event arrives, re-reads only the affected keys from native
+4. Notifies all subscribed hooks via `useSyncExternalStore`
+
+This means:
+- 10 components reading the same key = 1 native read (not 10)
+- 1 event listener total (not 1 per hook)
+- No race conditions between mount and subscription
+
+## iCloud KVS limits
+
+| Limit | Value |
+|-------|-------|
+| Total storage | 1 MB |
+| Maximum keys | 1024 |
+| Per-key size | 1 MB |
+
+Exceeding limits may trigger a `quotaViolation` change event and cause data loss.
+
+## Security
+
+iCloud KVS data is stored in the user's iCloud account and is **not encrypted at the application level**. Do not store sensitive data such as passwords, tokens, API keys, or personal health information. For sensitive data, use `expo-secure-store` or a server-side solution.
+
+## Sync behavior
+
+- Auto-syncs across devices signed into the same iCloud account
+- Background sync when network is available
+- The system coalesces writes and syncs periodically (not per-write)
+- First sync after app launch may take a few moments
+- Works offline - changes sync when connectivity is restored
+- Sync does not work in the iOS Simulator (device-only)
+
+## Platform support
+
+| Platform | Status |
+|----------|--------|
+| iOS | Full support via `NSUbiquitousKeyValueStore` |
+| Android | No-op - all getters return `null`, `isAvailable()` returns `false` |
+| Web | Not supported |
+
+## API reference
+
+### Types
+
+```ts
+type CloudSettingsChangeReason =
+  | 'serverChange'    // Another device changed values
+  | 'initialSync'     // First sync after app launch
+  | 'quotaViolation'  // Storage limit exceeded
+  | 'accountChange';  // iCloud account changed
+
+type CloudSettingsChangeEvent = {
+  readonly changedKeys: ReadonlyArray<string>;
+  readonly reason: CloudSettingsChangeReason;
+};
+```
+
+## License
+
+MIT

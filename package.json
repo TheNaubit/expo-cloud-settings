@@ -1,7 +1,7 @@
 {
   "name": "expo-cloud-settings",
-  "version": "0.1.0",
-  "description": "iCloud key-value storage sync across  devices",
+  "version": "1.0.0",
+  "description": "iCloud key-value storage sync across devices",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -19,7 +19,14 @@
     "react-native",
     "expo",
     "expo-cloud-settings",
-    "ExpoCloudSettings"
+    "ExpoCloudSettings",
+    "iCloud",
+    "key-value storage",
+    "sync",
+    "cross-device",
+    "google-drive",
+    "cloud-storage",
+    "cloudkit"
   ],
   "repository": "https://github.com/TheNaubit/expo-cloud-settings",
   "bugs": {
