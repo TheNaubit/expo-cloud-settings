@@ -28,7 +28,10 @@
     "cloud-storage",
     "cloudkit"
   ],
-  "repository": "https://github.com/TheNaubit/expo-cloud-settings",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheNaubit/expo-cloud-settings.git"
+  },
   "bugs": {
     "url": "https://github.com/TheNaubit/expo-cloud-settings/issues"
   },
