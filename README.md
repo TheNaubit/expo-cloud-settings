@@ -1,5 +1,10 @@
 # expo-cloud-settings
 
+[![npm version](https://img.shields.io/npm/v/@nauverse/expo-cloud-settings)](https://www.npmjs.com/package/@nauverse/expo-cloud-settings)
+[![CI](https://github.com/TheNaubit/expo-cloud-settings/actions/workflows/ci.yml/badge.svg)](https://github.com/TheNaubit/expo-cloud-settings/actions/workflows/ci.yml)
+[![Release](https://github.com/TheNaubit/expo-cloud-settings/actions/workflows/release.yml/badge.svg)](https://github.com/TheNaubit/expo-cloud-settings/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/npm/l/@nauverse/expo-cloud-settings)](https://github.com/TheNaubit/expo-cloud-settings/blob/main/LICENSE)
+
 An Expo module wrapping Apple's `NSUbiquitousKeyValueStore` for iCloud key-value sync across devices. Hooks-first React API with change listeners.
 
 Android returns no-op (null values, `isAvailable() === false`) so you can use the same API on both platforms without crashes.
