@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.0...v1.3.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* add iCloud capability entitlements for EAS Build compatibility ([5b111c2](https://github.com/TheNaubit/expo-cloud-settings/commit/5b111c2e437ed03166531f62383a138f3812e696))
+
 # [1.3.0](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.2.0...v1.3.0) (2026-02-06)
 
 
