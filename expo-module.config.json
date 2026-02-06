@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoCloudSettingsModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.cloudsettings.ExpoCloudSettingsModule"]
+  }
+}
