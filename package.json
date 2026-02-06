@@ -1,5 +1,5 @@
 {
-  "name": "expo-cloud-settings",
+  "name": "@nauverse/expo-cloud-settings",
   "version": "1.0.0",
   "description": "iCloud key-value storage sync across devices",
   "main": "build/index.js",
@@ -35,12 +35,18 @@
   "author": "Albert Adler <22015497+TheNaubit@users.noreply.github.com> (https://github.com/TheNaubit)",
   "license": "MIT",
   "homepage": "https://github.com/TheNaubit/expo-cloud-settings#readme",
-  "dependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/react": "~19.1.0",
-    "expo-module-scripts": "^5.0.8",
     "expo": "^54.0.27",
-    "react-native": "0.81.5"
+    "expo-module-scripts": "^5.0.8",
+    "react-native": "0.81.5",
+    "semantic-release": "^25.0.3"
   },
   "peerDependencies": {
     "expo": "*",
