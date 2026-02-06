@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.1.1...v1.2.0) (2026-02-06)
+
+
+### Features
+
+* add npm, CI, release, and license badges to README ([4ed03ee](https://github.com/TheNaubit/expo-cloud-settings/commit/4ed03ee07bb45eb66bb944d4e33e834bce60ae2e))
+
 ## [1.1.1](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.1.0...v1.1.1) (2026-02-06)
 
 
