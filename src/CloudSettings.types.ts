@@ -1,5 +1,6 @@
 export type CloudSettingsChangeReason =
   | 'serverChange'
+  | 'localChange'
   | 'initialSync'
   | 'quotaViolation'
   | 'accountChange';

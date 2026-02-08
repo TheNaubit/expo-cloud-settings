@@ -33,6 +33,7 @@ public class CloudSettingsModule: Module {
 
     Function("setString") { (key: String, value: String) in
       NSUbiquitousKeyValueStore.default.set(value, forKey: key)
+      self.sendLocalChange([key])
     }
 
     Function("getString") { (key: String) -> String? in
@@ -41,6 +42,7 @@ public class CloudSettingsModule: Module {
 
     Function("remove") { (key: String) in
       NSUbiquitousKeyValueStore.default.removeObject(forKey: key)
+      self.sendLocalChange([key])
     }
 
     Function("getAllKeys") { () -> [String] in
@@ -49,8 +51,12 @@ public class CloudSettingsModule: Module {
 
     Function("clear") { () in
       let store = NSUbiquitousKeyValueStore.default
-      for key in store.dictionaryRepresentation.keys {
+      let keys = Array(store.dictionaryRepresentation.keys)
+      for key in keys {
         store.removeObject(forKey: key)
+      }
+      if !keys.isEmpty {
+        self.sendLocalChange(keys)
       }
     }
 
@@ -81,6 +87,13 @@ public class CloudSettingsModule: Module {
     sendEvent("onStoreChanged", [
       "changedKeys": changedKeys,
       "reason": reason
+    ])
+  }
+
+  private func sendLocalChange(_ keys: [String]) {
+    sendEvent("onStoreChanged", [
+      "changedKeys": keys,
+      "reason": "localChange"
     ])
   }
 }

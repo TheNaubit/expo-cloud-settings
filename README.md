@@ -5,9 +5,9 @@
 [![Release](https://github.com/TheNaubit/expo-cloud-settings/actions/workflows/release.yml/badge.svg)](https://github.com/TheNaubit/expo-cloud-settings/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/npm/l/@nauverse/expo-cloud-settings)](https://github.com/TheNaubit/expo-cloud-settings/blob/main/LICENSE)
 
-An Expo module wrapping Apple's `NSUbiquitousKeyValueStore` for iCloud key-value sync across devices. Hooks-first React API with change listeners.
+An Expo module wrapping Apple's `NSUbiquitousKeyValueStore` and Android's Google Drive App Data for cross-device key-value sync. Hooks-first React API with change listeners.
 
-Android returns no-op (null values, `isAvailable() === false`) so you can use the same API on both platforms without crashes.
+Android uses Google Drive App Data for cross-device sync with a local `SharedPreferences` cache, so you can use the same API on both platforms without crashes.
 
 ## Features
 
@@ -17,8 +17,8 @@ Android returns no-op (null values, `isAvailable() === false`) so you can use th
 - Config plugin - no manual Xcode entitlement setup
 - Typed helpers: `setBool`, `setNumber`, `setObject<T>`
 - `clear()` to remove all keys
-- `isAvailable()` runtime platform check (checks iCloud sign-in status)
-- Android no-op module (safe to call, returns null)
+- `isAvailable()` runtime check for cloud sync availability (iCloud/Google sign-in and permissions)
+- Android sync backed by Google Drive App Data with local `SharedPreferences` cache
 
 ## Installation
 
@@ -71,6 +71,12 @@ export default function App() {
 ```
 
 All `useCloudSetting*` hooks must be descendants of this provider.
+
+### Android setup (Google Drive App Data)
+
+Android sync requires the user to be signed into Google and for your app to request the Drive App Data scope. The module reads the last signed-in Google account and will only sync when that account has granted the `https://www.googleapis.com/auth/drive.appdata` scope.
+
+If you already use Google Sign-In, ensure you request the Drive App Data scope during sign-in. If not, integrate Google Sign-In (or your preferred auth flow) and request the scope so `isAvailable()` returns `true` on Android.
 
 ## Usage
 
@@ -222,13 +228,13 @@ iCloud KVS data is stored in the user's iCloud account and is **not encrypted at
 
 ## Platform support
 
-| Platform | Status |
-|----------|--------|
-| iOS | Full support via `NSUbiquitousKeyValueStore` |
-| Android | No-op (returns `null`, `isAvailable()` returns `false`) - **real sync support coming soon** via Google Drive App Data |
-| Web | Not supported |
+| Platform | Minimum version | Status |
+|----------|------------------|--------|
+| iOS | 15.1 | Full support via `NSUbiquitousKeyValueStore` |
+| Android | 7.0 (API 24) | Google Drive App Data sync with local `SharedPreferences` cache |
+| Web | N/A | Not supported |
 
-> **Android support coming soon.** The Android module currently acts as a safe no-op so your code works on both platforms without crashes. Real cross-device sync on Android (via Google Drive App Data) is on the roadmap. Follow the repo for updates.
+> **Android sync via Google Drive App Data.** Ensure the user is signed into Google on the device and has granted Drive App Data access for sync to work.
 
 ## API reference
 
@@ -237,9 +243,10 @@ iCloud KVS data is stored in the user's iCloud account and is **not encrypted at
 ```ts
 type CloudSettingsChangeReason =
   | 'serverChange'    // Another device changed values
+  | 'localChange'     // Local writes from the current device
   | 'initialSync'     // First sync after app launch
   | 'quotaViolation'  // Storage limit exceeded
-  | 'accountChange';  // iCloud account changed
+  | 'accountChange';  // Cloud account changed (iCloud/Google); local cache may be cleared and re-synced
 
 type CloudSettingsChangeEvent = {
   readonly changedKeys: ReadonlyArray<string>;
