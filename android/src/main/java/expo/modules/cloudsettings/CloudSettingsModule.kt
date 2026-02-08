@@ -150,22 +150,19 @@ class CloudSettingsModule : Module() {
       null
     } ?: return null
     val modifiedTime = metadata.optString("modifiedTime", null)
-    if (modifiedTime != null) {
-      metaPrefs().edit().putString(KEY_REMOTE_MODIFIED, modifiedTime).apply()
-    }
     return DriveFile(fileId, modifiedTime)
   }
 
-  private fun downloadSnapshot(token: String, file: DriveFile): Map<String, String> {
+  private fun downloadSnapshot(token: String, file: DriveFile): Map<String, String>? {
     val url = "https://www.googleapis.com/drive/v3/files/${file.id}?alt=media"
     val response = request("GET", url, token)
-    if (response.code !in 200..299) return emptyMap()
+    if (response.code !in 200..299) return null
     val payload = response.body
     val json = try {
       JSONObject(payload)
     } catch (error: Exception) {
       Log.w(TAG, "Failed to parse Drive snapshot", error)
-      return emptyMap()
+      return null
     }
     val result = mutableMapOf<String, String>()
     json.keys().forEach { key ->
@@ -265,7 +262,7 @@ class CloudSettingsModule : Module() {
           return@launch
         }
 
-        val remoteSnapshot = downloadSnapshot(token, file)
+        val remoteSnapshot = downloadSnapshot(token, file) ?: return@launch
         val sharedPrefs = prefs()
         val currentSnapshot = sharedPrefs.all.mapValues { it.value as? String }
         val changedKeys = mutableListOf<String>()
@@ -295,7 +292,9 @@ class CloudSettingsModule : Module() {
             )
           )
         }
-        meta.edit().putBoolean(KEY_DIRTY, false).apply()
+        val metaEditor = meta.edit().putBoolean(KEY_DIRTY, false)
+        file.modifiedTime?.let { metaEditor.putString(KEY_REMOTE_MODIFIED, it) }
+        metaEditor.apply()
         hasSyncedOnce = true
       } finally {
         isSyncing.set(false)

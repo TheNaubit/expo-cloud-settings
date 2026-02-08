@@ -17,7 +17,7 @@ Android uses Google Drive App Data for cross-device sync with a local `SharedPre
 - Config plugin - no manual Xcode entitlement setup
 - Typed helpers: `setBool`, `setNumber`, `setObject<T>`
 - `clear()` to remove all keys
-- `isAvailable()` runtime platform check (checks iCloud sign-in status)
+- `isAvailable()` runtime check for cloud sync availability (iCloud/Google sign-in and permissions)
 - Android sync backed by Google Drive App Data with local `SharedPreferences` cache
 
 ## Installation
