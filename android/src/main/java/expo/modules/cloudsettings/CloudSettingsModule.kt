@@ -136,13 +136,19 @@ class CloudSettingsModule : Module() {
 
     val metadataUrl = "https://www.googleapis.com/drive/v3/files/$fileId?fields=id,modifiedTime"
     val metadataResponse = request("GET", metadataUrl, token)
-    if (metadataResponse.code !in 200..299) return DriveFile(fileId, null)
+    if (metadataResponse.code !in 200..299) {
+      if (metadataResponse.code == 404 || metadataResponse.code == 410) {
+        cachedFileId = null
+      }
+      Log.w(TAG, "Drive metadata request failed with ${metadataResponse.code}")
+      return null
+    }
     val metadata = try {
       JSONObject(metadataResponse.body)
     } catch (error: Exception) {
       Log.w(TAG, "Failed to parse Drive metadata", error)
       null
-    } ?: return DriveFile(fileId, null)
+    } ?: return null
     val modifiedTime = metadata.optString("modifiedTime", null)
     if (modifiedTime != null) {
       metaPrefs().edit().putString(KEY_REMOTE_MODIFIED, modifiedTime).apply()
