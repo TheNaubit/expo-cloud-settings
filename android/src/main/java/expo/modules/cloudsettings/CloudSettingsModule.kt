@@ -263,6 +263,9 @@ class CloudSettingsModule : Module() {
         if (accountId != null && cachedAccountId != null && accountId != cachedAccountId) {
           Log.w(TAG, "Google account changed; clearing local cache before sync.")
           cachedFileId = null
+          uploadJob?.cancel()
+          uploadJob = null
+          uploadQueued.set(false)
           prefs().edit().clear().apply()
           meta.edit()
             .remove(KEY_REMOTE_MODIFIED)
