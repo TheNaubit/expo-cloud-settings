@@ -26,8 +26,8 @@ class CloudSettingsModule : Module() {
   private var listener: SharedPreferences.OnSharedPreferenceChangeListener? = null
   private val isApplyingRemote = AtomicBoolean(false)
   private val isSyncing = AtomicBoolean(false)
-  private var hasSyncedOnce = false
-  private var cachedFileId: String? = null
+  @Volatile private var hasSyncedOnce = false
+  @Volatile private var cachedFileId: String? = null
   private var syncJob: Job? = null
   private var uploadJob: Job? = null
   private val uploadQueued = AtomicBoolean(false)
