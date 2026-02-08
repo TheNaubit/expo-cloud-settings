@@ -266,12 +266,25 @@ class CloudSettingsModule : Module() {
           uploadJob?.cancel()
           uploadJob = null
           uploadQueued.set(false)
-          prefs().edit().clear().apply()
+          val sharedPrefs = prefs()
+          val clearedKeys = sharedPrefs.all.keys.toList()
+          isApplyingRemote.set(true)
+          sharedPrefs.edit().clear().apply()
+          isApplyingRemote.set(false)
           meta.edit()
             .remove(KEY_REMOTE_MODIFIED)
             .remove(KEY_ACCOUNT_ID)
             .putBoolean(KEY_DIRTY, false)
             .apply()
+          if (clearedKeys.isNotEmpty()) {
+            sendEvent(
+              "onStoreChanged",
+              mapOf(
+                "changedKeys" to clearedKeys,
+                "reason" to "accountChange"
+              )
+            )
+          }
           hasSyncedOnce = false
           return@launch
         }
