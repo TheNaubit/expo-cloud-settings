@@ -246,7 +246,7 @@ type CloudSettingsChangeReason =
   | 'localChange'     // Local writes from the current device
   | 'initialSync'     // First sync after app launch
   | 'quotaViolation'  // Storage limit exceeded
-  | 'accountChange';  // iCloud account changed
+  | 'accountChange';  // Cloud account changed (iCloud/Google); local cache may be cleared and re-synced
 
 type CloudSettingsChangeEvent = {
   readonly changedKeys: ReadonlyArray<string>;
