@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.2...v1.3.3) (2026-09-29)
+
+
+### Bug Fixes
+
+* sync hooks with imperative writes, honor changing defaults, and tighten validation ([d1bfd44](https://github.com/TheNaubit/expo-cloud-settings/commit/d1bfd4487600a1521803a5282d0c20de5ae901e6))
+
 ## [1.3.2](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.1...v1.3.2) (2026-09-29)
 
 
