@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.1...v1.3.2) (2026-09-29)
+
+
+### Bug Fixes
+
+* harden validation, resync provider cache, and avoid missed iCloud changes ([87bd2b6](https://github.com/TheNaubit/expo-cloud-settings/commit/87bd2b6b51889cc48abca6c6260f14c024a632fb))
+
 ## [1.3.1](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.0...v1.3.1) (2026-02-06)
 
 
