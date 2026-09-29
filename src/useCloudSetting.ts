@@ -45,7 +45,7 @@ export function useCloudSettingNumber(
   defaultRef.current = defaultValue;
 
   const value = useMemo(() => {
-    if (raw === null || raw.length === 0) return defaultRef.current ?? null;
+    if (raw === null || raw.trim().length === 0) return defaultRef.current ?? null;
     const parsed = Number(raw);
     if (!Number.isFinite(parsed)) return defaultRef.current ?? null;
     return parsed;

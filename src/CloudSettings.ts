@@ -8,20 +8,34 @@ const MAX_VALUE_BYTES = 1_000_000;
 
 const MAX_KEY_BYTES = 64;
 
+function utf8ByteLength(text: string): number {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(text).length;
+  }
+  let bytes = 0;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 0x80) {
+      bytes += 1;
+    } else if (code < 0x800) {
+      bytes += 2;
+    } else if (code >= 0xd800 && code <= 0xdbff && i + 1 < text.length) {
+      // Surrogate pair: one 4-byte code point
+      bytes += 4;
+      i++;
+    } else {
+      bytes += 3;
+    }
+  }
+  return bytes;
+}
+
 function validateKey(key: string): void {
-  if (!key) {
+  if (typeof key !== 'string' || key.length === 0) {
     throw new Error('CloudSettings: key must be a non-empty string');
   }
-  if (typeof TextEncoder !== 'undefined') {
-    if (new TextEncoder().encode(key).length > MAX_KEY_BYTES) {
-      throw new Error(
-        `CloudSettings: key must not exceed ${MAX_KEY_BYTES} bytes`
-      );
-    }
-  } else if (key.length * 4 > MAX_KEY_BYTES) {
-    throw new Error(
-      `CloudSettings: key must not exceed ${MAX_KEY_BYTES} bytes`
-    );
+  if (utf8ByteLength(key) > MAX_KEY_BYTES) {
+    throw new Error(`CloudSettings: key must not exceed ${MAX_KEY_BYTES} bytes`);
   }
 }
 
@@ -29,15 +43,12 @@ function validateKey(key: string): void {
 
 export function setString(key: string, value: string): void {
   validateKey(key);
-  if (typeof TextEncoder !== 'undefined') {
-    if (new TextEncoder().encode(value).length > MAX_VALUE_BYTES) {
-      throw new Error(
-        `CloudSettings: value exceeds maximum size of ${MAX_VALUE_BYTES} bytes`
-      );
-    }
-  } else if (value.length * 4 > MAX_VALUE_BYTES) {
+  if (typeof value !== 'string') {
+    throw new Error('CloudSettings: value must be a string');
+  }
+  if (utf8ByteLength(value) > MAX_VALUE_BYTES) {
     throw new Error(
-      `CloudSettings: value may exceed maximum size of ${MAX_VALUE_BYTES} bytes`
+      `CloudSettings: value exceeds maximum size of ${MAX_VALUE_BYTES} bytes`
     );
   }
   ExpoCloudSettingsModule.setString(key, value);
@@ -88,7 +99,7 @@ export function setNumber(key: string, value: number): void {
 
 export function getNumber(key: string): number | null {
   const raw = getString(key);
-  if (raw === null || raw.length === 0) return null;
+  if (raw === null || raw.trim().length === 0) return null;
   const parsed = Number(raw);
   if (!Number.isFinite(parsed)) return null;
   return parsed;

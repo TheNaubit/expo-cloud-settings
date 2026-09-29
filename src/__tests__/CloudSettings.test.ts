@@ -244,3 +244,34 @@ describe('change listener', () => {
     expect(subscription.remove).toBeDefined();
   });
 });
+
+describe('hardening', () => {
+  test('accepts multi-byte keys within the byte limit without TextEncoder', () => {
+    const original = globalThis.TextEncoder;
+    (globalThis as any).TextEncoder = undefined;
+    try {
+      expect(() => setString('a'.repeat(64), 'v')).not.toThrow();
+      expect(() => setString('a'.repeat(65), 'v')).toThrow('key must not exceed');
+      expect(() => setString('é'.repeat(32), 'v')).not.toThrow();
+      expect(() => setString('é'.repeat(33), 'v')).toThrow('key must not exceed');
+    } finally {
+      (globalThis as any).TextEncoder = original;
+    }
+  });
+
+  test('rejects non-string keys', () => {
+    expect(() => getString(123 as unknown as string)).toThrow('non-empty string');
+    expect(() => remove(undefined as unknown as string)).toThrow('non-empty string');
+  });
+
+  test('rejects non-string values', () => {
+    expect(() => setString('key', undefined as unknown as string)).toThrow('value must be a string');
+    expect(() => setString('key', 5 as unknown as string)).toThrow('value must be a string');
+    expect(mockModule.setString).not.toHaveBeenCalled();
+  });
+
+  test('getNumber ignores whitespace-only values', () => {
+    mockModule.getString.mockReturnValue('   ');
+    expect(getNumber('key')).toBeNull();
+  });
+});

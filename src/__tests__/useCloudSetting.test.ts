@@ -397,13 +397,37 @@ describe('useCloudSettingObject setter validation', () => {
 });
 
 describe('store cache', () => {
-  test('reads native only once per key', () => {
+  test('reads native once on render and once on post-subscribe resync', () => {
     (mockModule.getString as jest.Mock).mockReturnValue('val');
     renderHook(() => useCloudSetting('cached'));
-    // getString called once for initial read (via store.read in getSnapshot)
+    // initial read in getSnapshot, plus one resync after the listener is registered
     const callCount = (mockModule.getString as jest.Mock).mock.calls.filter(
       (c: string[]) => c[0] === 'cached'
     ).length;
-    expect(callCount).toBe(1);
+    expect(callCount).toBe(2);
+  });
+});
+
+describe('provider resync', () => {
+  test('picks up changes that happened between render and listener registration', () => {
+    mockModule.getString.mockReturnValueOnce('old');
+    mockModule.getString.mockReturnValue('new');
+    const { result } = renderHook(() => useCloudSetting('race-key'));
+    expect(result.current[0]).toBe('new');
+  });
+
+  test('account change refreshes every cached key even with empty changedKeys', () => {
+    mockModule.getString.mockReturnValue('one');
+    const { result } = renderHook(() => useCloudSetting('acct-key'));
+    expect(result.current[0]).toBe('one');
+    mockModule.getString.mockReturnValue('two');
+    TestRenderer.act(() => emitChange([], 'accountChange'));
+    expect(result.current[0]).toBe('two');
+  });
+
+  test('number hook treats whitespace as missing', () => {
+    mockModule.getString.mockReturnValue('  ');
+    const { result } = renderHook(() => useCloudSettingNumber('ws-key', 7));
+    expect(result.current[0]).toBe(7);
   });
 });

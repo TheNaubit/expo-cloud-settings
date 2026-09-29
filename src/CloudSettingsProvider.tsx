@@ -27,22 +27,30 @@ class CloudSettingsStore {
   invalidate(keys: readonly string[]): void {
     let changed = false;
     for (const key of keys) {
-      if (this.cache.has(key)) {
-        let fresh: string | null;
-        try {
-          fresh = getString(key);
-        } catch {
-          fresh = null;
-        }
-        if (this.cache.get(key) !== fresh) {
-          this.cache.set(key, fresh);
-          changed = true;
-        }
+      if (this.refresh(key)) {
+        changed = true;
       }
     }
     if (changed) {
       this.notify();
     }
+  }
+
+  invalidateAll(): void {
+    this.invalidate(Array.from(this.cache.keys()));
+  }
+
+  private refresh(key: string): boolean {
+    if (!this.cache.has(key)) return false;
+    let fresh: string | null;
+    try {
+      fresh = getString(key);
+    } catch {
+      fresh = null;
+    }
+    if (this.cache.get(key) === fresh) return false;
+    this.cache.set(key, fresh);
+    return true;
   }
 
   subscribe(listener: Listener): () => void {
@@ -70,8 +78,14 @@ export function CloudSettingsProvider({ children }: { readonly children: React.R
 
   useEffect(() => {
     const subscription = addChangeListener((event) => {
-      store.invalidate(event.changedKeys);
+      if (event.reason === 'accountChange' || event.changedKeys.length === 0) {
+        store.invalidateAll();
+      } else {
+        store.invalidate(event.changedKeys);
+      }
     });
+    // Values may have changed between the first render and this effect
+    store.invalidateAll();
     return () => subscription.remove();
   }, [store]);
 

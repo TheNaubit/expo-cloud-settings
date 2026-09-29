@@ -15,6 +15,9 @@ public class CloudSettingsModule: Module {
     Events("onStoreChanged")
 
     OnStartObserving {
+      if let existing = self.observer {
+        NotificationCenter.default.removeObserver(existing)
+      }
       self.observer = NotificationCenter.default.addObserver(
         forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
         object: NSUbiquitousKeyValueStore.default,
@@ -22,6 +25,8 @@ public class CloudSettingsModule: Module {
       ) { [weak self] notification in
         self?.handleStoreChange(notification)
       }
+      // Pull the latest values from iCloud so the first external change is not missed
+      NSUbiquitousKeyValueStore.default.synchronize()
     }
 
     OnStopObserving {
