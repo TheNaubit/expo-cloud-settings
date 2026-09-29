@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useCloudSettingRaw } from './CloudSettingsProvider';
 
@@ -16,15 +16,8 @@ export function useCloudSettingBool(
   defaultValue?: boolean
 ): readonly [boolean | null, (value: boolean | null) => void] {
   const [raw, setRaw] = useCloudSettingRaw(key);
-  const defaultRef = useRef(defaultValue);
-  defaultRef.current = defaultValue;
-
-  const value = useMemo(() => {
-    if (raw === null) return defaultRef.current ?? null;
-    if (raw === 'true') return true;
-    if (raw === 'false') return false;
-    return defaultRef.current ?? null;
-  }, [raw]);
+  const parsed = raw === 'true' ? true : raw === 'false' ? false : null;
+  const value = parsed ?? defaultValue ?? null;
 
   const setter = useCallback(
     (newValue: boolean | null) => {
@@ -41,15 +34,8 @@ export function useCloudSettingNumber(
   defaultValue?: number
 ): readonly [number | null, (value: number | null) => void] {
   const [raw, setRaw] = useCloudSettingRaw(key);
-  const defaultRef = useRef(defaultValue);
-  defaultRef.current = defaultValue;
-
-  const value = useMemo(() => {
-    if (raw === null || raw.trim().length === 0) return defaultRef.current ?? null;
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) return defaultRef.current ?? null;
-    return parsed;
-  }, [raw]);
+  const parsed = raw === null || raw.trim().length === 0 ? NaN : Number(raw);
+  const value = Number.isFinite(parsed) ? parsed : defaultValue ?? null;
 
   const setter = useCallback(
     (newValue: number | null) => {
@@ -69,17 +55,18 @@ export function useCloudSettingObject<T>(
   defaultValue?: T
 ): readonly [T | null, (value: T | null) => void] {
   const [raw, setRaw] = useCloudSettingRaw(key);
-  const defaultRef = useRef(defaultValue);
-  defaultRef.current = defaultValue;
 
-  const value = useMemo(() => {
-    if (raw === null) return defaultRef.current ?? null;
+  // Parse only when the stored string changes so the returned object keeps its identity
+  const parsed = useMemo((): { readonly ok: boolean; readonly value: T | null } => {
+    if (raw === null) return { ok: false, value: null };
     try {
-      return JSON.parse(raw) as T;
+      return { ok: true, value: JSON.parse(raw) as T };
     } catch {
-      return defaultRef.current ?? null;
+      return { ok: false, value: null };
     }
   }, [raw]);
+
+  const value = parsed.ok ? parsed.value : defaultValue ?? null;
 
   const setter = useCallback(
     (newValue: T | null) => {

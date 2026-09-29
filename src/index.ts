@@ -26,4 +26,5 @@ export {
 export type {
   CloudSettingsChangeReason,
   CloudSettingsChangeEvent,
+  CloudSettingsSubscription,
 } from './CloudSettings.types';

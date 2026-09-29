@@ -40,6 +40,15 @@ describe('config plugin', () => {
     );
   });
 
+  test('trims surrounding whitespace from containerIdentifier', () => {
+    const result = withCloudSettings(baseConfig, {
+      containerIdentifier: '  com.example.custom  ',
+    }) as any;
+    expect(result.modResults['com.apple.developer.ubiquity-kvstore-identifier']).toBe(
+      'com.example.custom'
+    );
+  });
+
   test('calls withEntitlementsPlist', () => {
     withCloudSettings(baseConfig);
     expect(withEntitlementsPlist).toHaveBeenCalledWith(

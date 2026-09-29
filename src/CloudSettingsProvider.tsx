@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useSyncExternalStore } from 'react';
 
-import { addChangeListener, getString, setString, remove } from './CloudSettings';
+import { addChangeListener, getString, setString, remove, subscribeToLocalChanges } from './CloudSettings';
 
 type Listener = () => void;
 
@@ -84,9 +84,19 @@ export function CloudSettingsProvider({ children }: { readonly children: React.R
         store.invalidate(event.changedKeys);
       }
     });
+    const unsubscribeLocal = subscribeToLocalChanges((keys) => {
+      if (keys === null) {
+        store.invalidateAll();
+      } else {
+        store.invalidate(keys);
+      }
+    });
     // Values may have changed between the first render and this effect
     store.invalidateAll();
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+      unsubscribeLocal();
+    };
   }, [store]);
 
   return (

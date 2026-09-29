@@ -11,11 +11,14 @@ module.exports = function withCloudSettings(config, options = {}) {
     );
   }
 
+  const containerIdentifier =
+    options.containerIdentifier?.trim() ??
+    '$(TeamIdentifierPrefix)$(CFBundleIdentifier)';
+
   return withEntitlementsPlist(config, (mod) => {
     // iCloud Key-Value Storage identifier
     mod.modResults['com.apple.developer.ubiquity-kvstore-identifier'] =
-      options.containerIdentifier ??
-      '$(TeamIdentifierPrefix)$(CFBundleIdentifier)';
+      containerIdentifier;
 
     // Enable iCloud capability so EAS Build / Xcode can create a
     // provisioning profile that includes iCloud.

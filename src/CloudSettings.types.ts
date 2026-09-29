@@ -9,6 +9,10 @@ export type CloudSettingsChangeEvent = {
   readonly reason: CloudSettingsChangeReason;
 };
 
+export type CloudSettingsSubscription = {
+  remove(): void;
+};
+
 export type CloudSettingsModuleEvents = {
   onStoreChanged: (event: CloudSettingsChangeEvent) => void;
 };

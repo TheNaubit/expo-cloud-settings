@@ -1,6 +1,4 @@
-import type { EventSubscription } from 'expo-modules-core';
-
-import { CloudSettingsChangeEvent } from './CloudSettings.types';
+import type { CloudSettingsChangeEvent, CloudSettingsSubscription } from './CloudSettings.types';
 import ExpoCloudSettingsModule from './ExpoCloudSettingsModule';
 
 // iCloud KVS limits
@@ -19,7 +17,7 @@ function utf8ByteLength(text: string): number {
       bytes += 1;
     } else if (code < 0x800) {
       bytes += 2;
-    } else if (code >= 0xd800 && code <= 0xdbff && i + 1 < text.length) {
+    } else if (isHighSurrogate(code) && isLowSurrogate(text.charCodeAt(i + 1))) {
       // Surrogate pair: one 4-byte code point
       bytes += 4;
       i++;
@@ -28,6 +26,33 @@ function utf8ByteLength(text: string): number {
     }
   }
   return bytes;
+}
+
+function isHighSurrogate(code: number): boolean {
+  return code >= 0xd800 && code <= 0xdbff;
+}
+
+function isLowSurrogate(code: number): boolean {
+  return code >= 0xdc00 && code <= 0xdfff;
+}
+
+// Local writes do not fire the native change event, so providers subscribe here.
+// A null key list means every key may have changed.
+type LocalChangeListener = (keys: readonly string[] | null) => void;
+
+const localChangeListeners = new Set<LocalChangeListener>();
+
+export function subscribeToLocalChanges(listener: LocalChangeListener): () => void {
+  localChangeListeners.add(listener);
+  return () => {
+    localChangeListeners.delete(listener);
+  };
+}
+
+function notifyLocalChange(keys: readonly string[] | null): void {
+  for (const listener of Array.from(localChangeListeners)) {
+    listener(keys);
+  }
 }
 
 function validateKey(key: string): void {
@@ -52,6 +77,7 @@ export function setString(key: string, value: string): void {
     );
   }
   ExpoCloudSettingsModule.setString(key, value);
+  notifyLocalChange([key]);
 }
 
 export function getString(key: string): string | null {
@@ -62,6 +88,7 @@ export function getString(key: string): string | null {
 export function remove(key: string): void {
   validateKey(key);
   ExpoCloudSettingsModule.remove(key);
+  notifyLocalChange([key]);
 }
 
 export function getAllKeys(): string[] {
@@ -70,6 +97,7 @@ export function getAllKeys(): string[] {
 
 export function clear(): void {
   ExpoCloudSettingsModule.clear();
+  notifyLocalChange(null);
 }
 
 export function isAvailable(): boolean {
@@ -134,6 +162,6 @@ export function getObject<T>(key: string): T | null {
 
 export function addChangeListener(
   callback: (event: CloudSettingsChangeEvent) => void
-): EventSubscription {
+): CloudSettingsSubscription {
   return ExpoCloudSettingsModule.addListener('onStoreChanged', callback);
 }

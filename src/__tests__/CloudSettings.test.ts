@@ -259,6 +259,18 @@ describe('hardening', () => {
     }
   });
 
+  test('counts a lone high surrogate as a replacement char without TextEncoder', () => {
+    const original = globalThis.TextEncoder;
+    (globalThis as any).TextEncoder = undefined;
+    try {
+      // '\uD800' encodes as U+FFFD (3 bytes) and 'é' as 2 bytes: 5 bytes per pair
+      expect(() => setString('\uD800é'.repeat(12) + 'abcd', 'v')).not.toThrow();
+      expect(() => setString('\uD800é'.repeat(12) + 'abcde', 'v')).toThrow('key must not exceed');
+    } finally {
+      (globalThis as any).TextEncoder = original;
+    }
+  });
+
   test('rejects non-string keys', () => {
     expect(() => getString(123 as unknown as string)).toThrow('non-empty string');
     expect(() => remove(undefined as unknown as string)).toThrow('non-empty string');

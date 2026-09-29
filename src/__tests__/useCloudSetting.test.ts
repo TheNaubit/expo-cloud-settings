@@ -36,6 +36,7 @@ import {
   useCloudSettingBool,
   useCloudSettingNumber,
 } from '../useCloudSetting';
+import { setString, remove, clear } from '../CloudSettings';
 
 const mockModule = ExpoCloudSettingsModule as jest.Mocked<typeof ExpoCloudSettingsModule>;
 
@@ -429,5 +430,93 @@ describe('provider resync', () => {
     mockModule.getString.mockReturnValue('  ');
     const { result } = renderHook(() => useCloudSettingNumber('ws-key', 7));
     expect(result.current[0]).toBe(7);
+  });
+});
+
+describe('imperative writes', () => {
+  test('setString outside a hook updates mounted hooks', () => {
+    mockModule.getString.mockReturnValue(null);
+    const { result } = renderHook(() => useCloudSetting('imp-key'));
+    expect(result.current[0]).toBeNull();
+    mockModule.getString.mockReturnValue('fresh');
+    TestRenderer.act(() => setString('imp-key', 'fresh'));
+    expect(result.current[0]).toBe('fresh');
+  });
+
+  test('remove outside a hook updates mounted hooks', () => {
+    mockModule.getString.mockReturnValue('present');
+    const { result } = renderHook(() => useCloudSetting('imp-remove'));
+    expect(result.current[0]).toBe('present');
+    mockModule.getString.mockReturnValue(null);
+    TestRenderer.act(() => remove('imp-remove'));
+    expect(result.current[0]).toBeNull();
+  });
+
+  test('clear outside a hook updates mounted hooks', () => {
+    mockModule.getString.mockReturnValue('present');
+    const { result } = renderHook(() => useCloudSetting('imp-clear'));
+    expect(result.current[0]).toBe('present');
+    mockModule.getString.mockReturnValue(null);
+    TestRenderer.act(() => clear());
+    expect(result.current[0]).toBeNull();
+  });
+});
+
+describe('changing default values', () => {
+  function renderWithDefault<D, T>(useHook: (d: D) => T, initial: D) {
+    const results: { current: T } = { current: undefined as T };
+    function TestComponent({ d }: { d: D }) {
+      results.current = useHook(d);
+      return null;
+    }
+    const tree = (d: D) =>
+      React.createElement(CloudSettingsProvider, null, React.createElement(TestComponent, { d }));
+    let renderer: TestRenderer.ReactTestRenderer;
+    TestRenderer.act(() => {
+      renderer = TestRenderer.create(tree(initial));
+    });
+    return {
+      result: results,
+      rerender: (d: D) => TestRenderer.act(() => renderer.update(tree(d))),
+    };
+  }
+
+  beforeEach(() => {
+    mockModule.getString.mockReturnValue(null);
+  });
+
+  test('bool hook reflects a new default when unset', () => {
+    const { result, rerender } = renderWithDefault((d: boolean) => useCloudSettingBool('d-bool', d), false);
+    expect(result.current[0]).toBe(false);
+    rerender(true);
+    expect(result.current[0]).toBe(true);
+  });
+
+  test('number hook reflects a new default when unset', () => {
+    const { result, rerender } = renderWithDefault((d: number) => useCloudSettingNumber('d-num', d), 1);
+    expect(result.current[0]).toBe(1);
+    rerender(2);
+    expect(result.current[0]).toBe(2);
+  });
+
+  test('object hook reflects a new default when unset', () => {
+    const { result, rerender } = renderWithDefault(
+      (d: { v: number }) => useCloudSettingObject('d-obj', d),
+      { v: 1 }
+    );
+    expect(result.current[0]).toEqual({ v: 1 });
+    rerender({ v: 2 });
+    expect(result.current[0]).toEqual({ v: 2 });
+  });
+
+  test('object hook keeps parsed identity when only an inline default changes', () => {
+    mockModule.getString.mockReturnValue('{"v":9}');
+    const { result, rerender } = renderWithDefault(
+      (d: { v: number }) => useCloudSettingObject('d-obj-stable', d),
+      { v: 1 }
+    );
+    const first = result.current[0];
+    rerender({ v: 1 });
+    expect(result.current[0]).toBe(first);
   });
 });
