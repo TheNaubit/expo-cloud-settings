@@ -1,6 +1,6 @@
 import { NativeModule, requireNativeModule } from 'expo';
 
-import { CloudSettingsModuleEvents } from './CloudSettings.types';
+import type { CloudSettingsModuleEvents } from './CloudSettings.types';
 
 declare class ExpoCloudSettingsModule extends NativeModule<CloudSettingsModuleEvents> {
   setString(key: string, value: string): void;

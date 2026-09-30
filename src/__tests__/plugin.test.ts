@@ -51,27 +51,24 @@ describe('config plugin', () => {
 
   test('calls withEntitlementsPlist', () => {
     withCloudSettings(baseConfig);
-    expect(withEntitlementsPlist).toHaveBeenCalledWith(
-      baseConfig,
-      expect.any(Function)
-    );
+    expect(withEntitlementsPlist).toHaveBeenCalledWith(baseConfig, expect.any(Function));
   });
 
   test('throws on empty containerIdentifier', () => {
-    expect(() =>
-      withCloudSettings(baseConfig, { containerIdentifier: '' })
-    ).toThrow('containerIdentifier must be a non-empty string');
+    expect(() => withCloudSettings(baseConfig, { containerIdentifier: '' })).toThrow(
+      'containerIdentifier must be a non-empty string'
+    );
   });
 
   test('throws on non-string containerIdentifier', () => {
-    expect(() =>
-      withCloudSettings(baseConfig, { containerIdentifier: 123 as any })
-    ).toThrow('containerIdentifier must be a non-empty string');
+    expect(() => withCloudSettings(baseConfig, { containerIdentifier: 123 as any })).toThrow(
+      'containerIdentifier must be a non-empty string'
+    );
   });
 
   test('throws on whitespace-only containerIdentifier', () => {
-    expect(() =>
-      withCloudSettings(baseConfig, { containerIdentifier: '   ' })
-    ).toThrow('containerIdentifier must be a non-empty string');
+    expect(() => withCloudSettings(baseConfig, { containerIdentifier: '   ' })).toThrow(
+      'containerIdentifier must be a non-empty string'
+    );
   });
 });

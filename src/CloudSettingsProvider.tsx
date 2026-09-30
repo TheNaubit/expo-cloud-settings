@@ -1,6 +1,19 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useSyncExternalStore } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
-import { addChangeListener, getString, setString, remove, subscribeToLocalChanges } from './CloudSettings';
+import {
+  addChangeListener,
+  getString,
+  setString,
+  remove,
+  subscribeToLocalChanges,
+} from './CloudSettings';
 
 type Listener = () => void;
 
@@ -70,11 +83,7 @@ class CloudSettingsStore {
 const CloudSettingsContext = createContext<CloudSettingsStore | null>(null);
 
 export function CloudSettingsProvider({ children }: { readonly children: React.ReactNode }) {
-  const storeRef = useRef<CloudSettingsStore | null>(null);
-  if (storeRef.current === null) {
-    storeRef.current = new CloudSettingsStore();
-  }
-  const store = storeRef.current;
+  const [store] = useState(() => new CloudSettingsStore());
 
   useEffect(() => {
     const subscription = addChangeListener((event) => {
@@ -99,11 +108,7 @@ export function CloudSettingsProvider({ children }: { readonly children: React.R
     };
   }, [store]);
 
-  return (
-    <CloudSettingsContext.Provider value={store}>
-      {children}
-    </CloudSettingsContext.Provider>
-  );
+  return <CloudSettingsContext.Provider value={store}>{children}</CloudSettingsContext.Provider>;
 }
 
 function useStore(): CloudSettingsStore {
@@ -114,13 +119,12 @@ function useStore(): CloudSettingsStore {
   return store;
 }
 
-export function useCloudSettingRaw(key: string): readonly [string | null, (value: string | null) => void] {
+export function useCloudSettingRaw(
+  key: string
+): readonly [string | null, (value: string | null) => void] {
   const store = useStore();
 
-  const subscribe = useCallback(
-    (listener: Listener) => store.subscribe(listener),
-    [store]
-  );
+  const subscribe = useCallback((listener: Listener) => store.subscribe(listener), [store]);
 
   const getSnapshot = useCallback(() => store.read(key), [store, key]);
 
