@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.3...v1.3.4) (2026-09-30)
+
+
+### Bug Fixes
+
+* **deps:** support Expo SDK 57 and refresh dev tooling ([a923c9f](https://github.com/TheNaubit/expo-cloud-settings/commit/a923c9f6a4e355f25336d2320ed127fd6075dc2f))
+
 ## [1.3.3](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.2...v1.3.3) (2026-09-29)
 
 
