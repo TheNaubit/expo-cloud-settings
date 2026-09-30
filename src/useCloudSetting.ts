@@ -35,7 +35,7 @@ export function useCloudSettingNumber(
 ): readonly [number | null, (value: number | null) => void] {
   const [raw, setRaw] = useCloudSettingRaw(key);
   const parsed = raw === null || raw.trim().length === 0 ? NaN : Number(raw);
-  const value = Number.isFinite(parsed) ? parsed : defaultValue ?? null;
+  const value = Number.isFinite(parsed) ? parsed : (defaultValue ?? null);
 
   const setter = useCallback(
     (newValue: number | null) => {
@@ -66,7 +66,7 @@ export function useCloudSettingObject<T>(
     }
   }, [raw]);
 
-  const value = parsed.ok ? parsed.value : defaultValue ?? null;
+  const value = parsed.ok ? parsed.value : (defaultValue ?? null);
 
   const setter = useCallback(
     (newValue: T | null) => {

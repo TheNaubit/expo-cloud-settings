@@ -140,10 +140,7 @@ describe('typed helpers', () => {
 
   test('setObject serializes object', () => {
     setObject('user', { name: 'Alice', age: 30 });
-    expect(mockModule.setString).toHaveBeenCalledWith(
-      'user',
-      '{"name":"Alice","age":30}'
-    );
+    expect(mockModule.setString).toHaveBeenCalledWith('user', '{"name":"Alice","age":30}');
   });
 
   test('getObject parses object', () => {
@@ -233,10 +230,7 @@ describe('change listener', () => {
   test('addChangeListener subscribes to onStoreChanged', () => {
     const callback = jest.fn();
     addChangeListener(callback);
-    expect(mockModule.addListener).toHaveBeenCalledWith(
-      'onStoreChanged',
-      callback
-    );
+    expect(mockModule.addListener).toHaveBeenCalledWith('onStoreChanged', callback);
   });
 
   test('addChangeListener returns subscription with remove', () => {
@@ -277,7 +271,9 @@ describe('hardening', () => {
   });
 
   test('rejects non-string values', () => {
-    expect(() => setString('key', undefined as unknown as string)).toThrow('value must be a string');
+    expect(() => setString('key', undefined as unknown as string)).toThrow(
+      'value must be a string'
+    );
     expect(() => setString('key', 5 as unknown as string)).toThrow('value must be a string');
     expect(mockModule.setString).not.toHaveBeenCalled();
   });

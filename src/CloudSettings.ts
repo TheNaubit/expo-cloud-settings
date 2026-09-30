@@ -72,9 +72,7 @@ export function setString(key: string, value: string): void {
     throw new Error('CloudSettings: value must be a string');
   }
   if (utf8ByteLength(value) > MAX_VALUE_BYTES) {
-    throw new Error(
-      `CloudSettings: value exceeds maximum size of ${MAX_VALUE_BYTES} bytes`
-    );
+    throw new Error(`CloudSettings: value exceeds maximum size of ${MAX_VALUE_BYTES} bytes`);
   }
   ExpoCloudSettingsModule.setString(key, value);
   notifyLocalChange([key]);

@@ -1,6 +1,16 @@
 import React from 'react';
 import TestRenderer from 'react-test-renderer';
 
+import { setString, remove, clear } from '../CloudSettings';
+import { CloudSettingsProvider } from '../CloudSettingsProvider';
+import ExpoCloudSettingsModule from '../ExpoCloudSettingsModule';
+import {
+  useCloudSetting,
+  useCloudSettingObject,
+  useCloudSettingBool,
+  useCloudSettingNumber,
+} from '../useCloudSetting';
+
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
 type ListenerCallback = (event: { changedKeys: string[]; reason: string }) => void;
@@ -28,16 +38,6 @@ jest.mock('../ExpoCloudSettingsModule', () => ({
   },
 }));
 
-import ExpoCloudSettingsModule from '../ExpoCloudSettingsModule';
-import { CloudSettingsProvider } from '../CloudSettingsProvider';
-import {
-  useCloudSetting,
-  useCloudSettingObject,
-  useCloudSettingBool,
-  useCloudSettingNumber,
-} from '../useCloudSetting';
-import { setString, remove, clear } from '../CloudSettings';
-
 const mockModule = ExpoCloudSettingsModule as jest.Mocked<typeof ExpoCloudSettingsModule>;
 
 function emitChange(changedKeys: string[], reason = 'serverChange') {
@@ -53,11 +53,7 @@ function renderHook<T>(useHook: () => T) {
   let renderer: TestRenderer.ReactTestRenderer;
   TestRenderer.act(() => {
     renderer = TestRenderer.create(
-      React.createElement(
-        CloudSettingsProvider,
-        null,
-        React.createElement(TestComponent)
-      )
+      React.createElement(CloudSettingsProvider, null, React.createElement(TestComponent))
     );
   });
   return {
@@ -87,9 +83,7 @@ beforeEach(() => {
 describe('CloudSettingsProvider', () => {
   test('registers one change listener on mount', () => {
     TestRenderer.act(() => {
-      TestRenderer.create(
-        React.createElement(CloudSettingsProvider, null, null)
-      );
+      TestRenderer.create(React.createElement(CloudSettingsProvider, null, null));
     });
     expect(mockListeners.length).toBe(1);
   });
@@ -97,9 +91,7 @@ describe('CloudSettingsProvider', () => {
   test('cleans up listener on unmount', () => {
     let renderer: TestRenderer.ReactTestRenderer;
     TestRenderer.act(() => {
-      renderer = TestRenderer.create(
-        React.createElement(CloudSettingsProvider, null, null)
-      );
+      renderer = TestRenderer.create(React.createElement(CloudSettingsProvider, null, null));
     });
     expect(mockListeners.length).toBe(1);
     TestRenderer.act(() => {
@@ -131,9 +123,7 @@ describe('useCloudSetting', () => {
 
   test('returns default value when native returns null', () => {
     (mockModule.getString as jest.Mock).mockReturnValue(null);
-    const { result } = renderHook(() =>
-      useCloudSetting('greeting', 'default')
-    );
+    const { result } = renderHook(() => useCloudSetting('greeting', 'default'));
     expect(result.current[0]).toBe('default');
   });
 
@@ -200,11 +190,7 @@ describe('useCloudSetting', () => {
     }
     TestRenderer.act(() => {
       TestRenderer.create(
-        React.createElement(
-          CloudSettingsProvider,
-          null,
-          React.createElement(DualComponent)
-        )
+        React.createElement(CloudSettingsProvider, null, React.createElement(DualComponent))
       );
     });
     // Only 1 listener from provider, not 2 from hooks
@@ -317,27 +303,20 @@ describe('useCloudSettingNumber', () => {
 describe('useCloudSettingObject', () => {
   test('reads object from native', () => {
     (mockModule.getString as jest.Mock).mockReturnValue('{"name":"Alice"}');
-    const { result } = renderHook(() =>
-      useCloudSettingObject<{ name: string }>('user')
-    );
+    const { result } = renderHook(() => useCloudSettingObject<{ name: string }>('user'));
     expect(result.current[0]).toEqual({ name: 'Alice' });
   });
 
   test('setter writes object', () => {
     (mockModule.getString as jest.Mock).mockReturnValue(null);
-    const { result } = renderHook(() =>
-      useCloudSettingObject<{ name: string }>('user')
-    );
+    const { result } = renderHook(() => useCloudSettingObject<{ name: string }>('user'));
 
     TestRenderer.act(() => {
       result.current[1]({ name: 'Bob' });
     });
 
     expect(result.current[0]).toEqual({ name: 'Bob' });
-    expect(mockModule.setString).toHaveBeenCalledWith(
-      'user',
-      '{"name":"Bob"}'
-    );
+    expect(mockModule.setString).toHaveBeenCalledWith('user', '{"name":"Bob"}');
   });
 
   test('round-trip serialization', () => {
@@ -486,14 +465,20 @@ describe('changing default values', () => {
   });
 
   test('bool hook reflects a new default when unset', () => {
-    const { result, rerender } = renderWithDefault((d: boolean) => useCloudSettingBool('d-bool', d), false);
+    const { result, rerender } = renderWithDefault(
+      (d: boolean) => useCloudSettingBool('d-bool', d),
+      false
+    );
     expect(result.current[0]).toBe(false);
     rerender(true);
     expect(result.current[0]).toBe(true);
   });
 
   test('number hook reflects a new default when unset', () => {
-    const { result, rerender } = renderWithDefault((d: number) => useCloudSettingNumber('d-num', d), 1);
+    const { result, rerender } = renderWithDefault(
+      (d: number) => useCloudSettingNumber('d-num', d),
+      1
+    );
     expect(result.current[0]).toBe(1);
     rerender(2);
     expect(result.current[0]).toBe(2);

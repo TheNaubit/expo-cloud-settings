@@ -1,11 +1,8 @@
 export type CloudSettingsChangeReason =
-  | 'serverChange'
-  | 'initialSync'
-  | 'quotaViolation'
-  | 'accountChange';
+  'serverChange' | 'initialSync' | 'quotaViolation' | 'accountChange';
 
 export type CloudSettingsChangeEvent = {
-  readonly changedKeys: ReadonlyArray<string>;
+  readonly changedKeys: readonly string[];
   readonly reason: CloudSettingsChangeReason;
 };
 
