@@ -1,3 +1,10 @@
+## [1.3.5](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.4...v1.3.5) (2026-11-08)
+
+
+### Bug Fixes
+
+* **deps:** resolve security advisories in transitive dependencies ([06f43cc](https://github.com/TheNaubit/expo-cloud-settings/commit/06f43ccadd5d6567b7a91829494f85c8b0751777))
+
 ## [1.3.4](https://github.com/TheNaubit/expo-cloud-settings/compare/v1.3.3...v1.3.4) (2026-09-30)
 
 
